@@ -1,0 +1,230 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getDocs } from '../lib/vault';
+
+const docs = getDocs();
+
+// Sections (Topics) are discovered from the vault, not hardcoded — every
+// top-level directory is one. Each card links to the topic's README (or first
+// doc); tones cycle so the grid stays visually varied.
+const TONES = ['purple', 'orange', 'mixed'] as const;
+
+function statsFor(id: string) {
+  const list = docs.filter((d) => d.section === id);
+  const readme = list.find((d) => d.relPath.toLowerCase() === `${id}/readme.md`);
+  const entry = readme ?? list[0];
+  return { count: list.length, entry };
+}
+
+const sectionIds = [...new Set(docs.map((d) => d.section))]
+  .filter((id) => id !== 'root')
+  .sort((a, b) => a.localeCompare(b));
+
+const sections = sectionIds.map((id, i) => {
+  const { count, entry } = statsFor(id);
+  return {
+    id,
+    label: id,
+    subtitle: `${count} 篇`,
+    tone: TONES[i % TONES.length],
+    entry,
+  };
+});
+
+const total = docs.length;
+---
+<Layout title="總覽">
+  <section class="hero">
+    <span class="hero-eyebrow">Markdown Viewer</span>
+    <h1 class="hero-title">Markdown <span class="grad">靜態資源庫</span></h1>
+    <p class="hero-lead">
+      把目錄裡的 Markdown 直接渲染成可瀏覽、可搜尋的靜態資源庫。
+      左欄瀏覽主題與目錄,右欄看大綱,<kbd>/</kbd> 隨手搜尋全文。
+    </p>
+    <div class="hero-meta">
+      <span class="pill"><span class="pill-dot"></span>{sections.length} 個主題</span>
+      <span class="pill">{total} 篇文件</span>
+    </div>
+  </section>
+
+  <section class="cards">
+    {sections.map((s) => {
+      const { count, entry } = statsFor(s.id);
+      return (
+        <a class={`card card--${s.tone}`} href={entry ? `/${entry.slug}/` : '#'}>
+          <div class="card-head">
+            <div class="card-title-wrap">
+              <span class="card-title">{s.label}</span>
+              <span class="card-sub">{s.subtitle}</span>
+            </div>
+            <span class="badge">{count}</span>
+          </div>
+        </a>
+      );
+    })}
+  </section>
+</Layout>
+
+<style>
+  .hero {
+    padding: 32px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--brand-purple);
+    margin-bottom: 14px;
+  }
+  .hero-title {
+    font-size: 44px;
+    line-height: 1.15;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 18px;
+    color: var(--bright);
+  }
+  .hero-title .grad {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero-lead {
+    font-size: 16.5px;
+    line-height: 1.7;
+    color: var(--muted);
+    max-width: 64ch;
+    margin: 0 0 20px;
+  }
+  .hero-lead kbd {
+    margin: 0 1px;
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gradient);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: var(--gradient);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+    pointer-events: none;
+  }
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 160px;
+    height: 160px;
+    background: var(--gradient-soft);
+    filter: blur(40px);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: transparent;
+    box-shadow: var(--shadow-card);
+  }
+  .card:hover::before,
+  .card:hover::after {
+    opacity: 1;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .card-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .card-title {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--bright);
+    letter-spacing: -0.01em;
+  }
+  .card--purple .card-title { color: var(--brand-purple); }
+  .card--orange .card-title { color: var(--brand-orange); }
+  .card--mixed .card-title {
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .card-sub {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .badge {
+    padding: 2px 9px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    font-size: 11.5px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (max-width: 820px) {
+    .hero-title { font-size: 32px; }
+    .hero-lead { font-size: 15px; }
+    .hero { padding-top: 16px; }
+  }
+</style>

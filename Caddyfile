@@ -1,0 +1,27 @@
+# 本地测试用 Caddyfile —— 渲染 Astro 构建产物 dist/
+# 运行: caddy run   (在本文件所在目录)
+# 访问: https://tcg-wiki.localhost
+#
+# .localhost 域名由浏览器自动解析到 127.0.0.1，无需改 hosts。
+# `tls internal` 用 Caddy 内置 CA 签发本地证书；首次运行会弹 UAC
+# 提示把这个本地 CA 装进系统信任库，同意后浏览器即不再警告。
+
+tcg-wiki.localhost {
+	# Astro 静态输出目录（绝对路径，Windows 用正斜杠）
+	root * C:/Users/Paul/workspace/tcg-crm-wiki-size/tcg-crm-wiki-site/dist
+
+	# 本地自签证书
+	tls internal
+
+	# 压缩响应
+	encode gzip zstd
+
+	# 静态多页站点：/foo/ 自动映射到 /foo/index.html
+	file_server
+
+	# 访问日志（可选，方便排查）
+	log {
+		output stdout
+		format console
+	}
+}

@@ -1,0 +1,22 @@
+---
+import type { SectionTree } from '../lib/vault';
+import TreeItem from './TreeItem.astro';
+import TopicNav from './TopicNav.astro';
+
+interface Props {
+  sections: SectionTree[];
+  active: string;
+  current?: string;
+}
+const { sections, active, current } = Astro.props;
+---
+<aside class="sidebar" id="sidebar">
+  <TopicNav sections={sections.map((s) => s.section)} active={active} />
+  <nav class="filetree" aria-label="File tree">
+    {sections.map(({ section, nodes }) => (
+      <ul class="tree" data-topic-tree={section} hidden={section !== active}>
+        {nodes.map((node) => <TreeItem node={node} current={current} basePath={section} />)}
+      </ul>
+    ))}
+  </nav>
+</aside>

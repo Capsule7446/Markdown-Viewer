@@ -1,0 +1,106 @@
+---
+import { getDocs, getNavIndex, buildSectionTrees } from '../lib/vault';
+import type { TocEntry } from '../lib/vault';
+import Sidebar from '../components/Sidebar.astro';
+import Toc from '../components/Toc.astro';
+import TocInline from '../components/TocInline.astro';
+import CommandPalette from '../components/CommandPalette.astro';
+import Lightbox from '../components/Lightbox.astro';
+import ThemeBoot from '../components/ThemeBoot.astro';
+import '../styles/tokens.css';
+import '../styles/app.css';
+
+interface Props {
+  title: string;
+  current?: string;
+  toc?: TocEntry[];
+}
+const { title, current, toc = [] } = Astro.props;
+const sections = buildSectionTrees(getDocs());
+const navIndex = getNavIndex();
+const hasToc = toc.length > 0;
+
+// Active Topic follows the current doc's section; the homepage (no current
+// doc) falls back to the first section.
+const currentSection = current ? (current.includes('/') ? current.split('/')[0] : 'root') : null;
+const sectionNames = sections.map((s) => s.section);
+const activeTopic =
+  currentSection && sectionNames.includes(currentSection) ? currentSection : sectionNames[0];
+---
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <title>{title} · Markdown Viewer</title>
+  <link rel="preconnect" href="https://rsms.me/" />
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+  <ThemeBoot />
+</head>
+<body>
+  <header class="site-header">
+    <a href="/" class="brand" aria-label="Markdown Viewer home">
+      <svg class="brand-globe" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <linearGradient id="globe-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#a78bfa" />
+            <stop offset="1" stop-color="#ff5d01" />
+          </linearGradient>
+          <clipPath id="globe-clip"><circle cx="12" cy="12" r="10" /></clipPath>
+          <g id="globe-land">
+            <ellipse cx="5" cy="9" rx="2.6" ry="1.8" />
+            <ellipse cx="9.5" cy="15" rx="2.1" ry="1.5" />
+            <ellipse cx="16" cy="8" rx="2.8" ry="2" />
+            <ellipse cx="19.5" cy="14.5" rx="1.7" ry="1.4" />
+          </g>
+        </defs>
+        <circle cx="12" cy="12" r="10" fill="url(#globe-grad)" opacity="0.12" />
+        <g clip-path="url(#globe-clip)" fill="url(#globe-grad)" opacity="0.85">
+          <g class="brand-globe-spin">
+            <use href="#globe-land" />
+            <use href="#globe-land" transform="translate(-24,0)" />
+          </g>
+        </g>
+        <g clip-path="url(#globe-clip)" fill="none" stroke="url(#globe-grad)" stroke-width="1" opacity="0.45">
+          <ellipse cx="12" cy="12" rx="10" ry="4" />
+          <ellipse cx="12" cy="12" rx="4" ry="10" />
+        </g>
+        <circle cx="12" cy="12" r="10" fill="none" stroke="url(#globe-grad)" stroke-width="1.5" />
+      </svg>
+      <span class="brand-name">Markdown Viewer</span>
+    </a>
+    <div class="header-spacer"></div>
+    <button id="palette-trigger" class="header-search" type="button" aria-label="開啟搜尋面板">
+      <svg class="hs-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="hs-label">搜尋文檔…</span>
+      <span class="hs-hint"><kbd>/</kbd></span>
+    </button>
+    <button id="theme-toggle" class="icon-btn" title="切換主題" aria-label="切換亮色或暗色主題">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+    <button id="nav-toggle" class="icon-btn" type="button" title="導覽" aria-label="開啟導覽" aria-expanded="false" aria-controls="sidebar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </header>
+
+  <div class="layout" data-has-toc={hasToc}>
+    <Sidebar sections={sections} active={activeTopic} current={current} />
+    <main class="content">
+      {hasToc && <TocInline toc={toc} />}
+      <slot />
+    </main>
+    {hasToc && <Toc toc={toc} />}
+  </div>
+
+  {/* Backdrop behind the nav drawer on narrow screens */}
+  <div id="scrim" class="scrim" hidden></div>
+
+  <Lightbox />
+  <CommandPalette docs={navIndex} />
+
+  <script>
+    import '../scripts/main';
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+---
+import { STORAGE } from '../scripts/constants';
+
+// Runs in <head> before paint so the theme never flashes.
+// `key` is injected via define:vars to keep storage keys in lockstep with
+// scripts/constants.ts (single source of truth).
+---
+<script is:inline define:vars={{ key: STORAGE.theme }}>
+  (function () {
+    try {
+      var t = localStorage.getItem(key);
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      }
+      document.documentElement.dataset.theme = t;
+    } catch (e) {
+      document.documentElement.dataset.theme = 'dark';
+    }
+  })();
+</script>

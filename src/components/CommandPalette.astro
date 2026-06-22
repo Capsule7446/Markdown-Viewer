@@ -1,0 +1,20 @@
+---
+import type { NavEntry } from '../lib/vault';
+
+interface Props {
+  docs: NavEntry[];
+}
+const { docs } = Astro.props;
+---
+<div id="palette" class="palette" hidden>
+  <div class="palette-box">
+    <div class="palette-input-row">
+      <span class="prompt">&gt;</span>
+      <input id="palette-input" type="text" placeholder="search docs…" autocomplete="off" spellcheck="false" />
+    </div>
+    <ul id="palette-list"></ul>
+  </div>
+</div>
+
+{/* Doc index consumed by scripts/palette.ts */}
+<script type="application/json" id="doc-index" set:html={JSON.stringify(docs)} is:inline />

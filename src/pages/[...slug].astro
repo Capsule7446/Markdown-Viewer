@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getDocs } from '../lib/vault';
+import type { Doc } from '../lib/vault';
+
+export function getStaticPaths() {
+  return getDocs().map((doc) => ({
+    params: { slug: doc.slug },
+    props: { doc },
+  }));
+}
+
+interface Props { doc: Doc }
+const { doc } = Astro.props;
+---
+<Layout title={doc.title} current={doc.slug} toc={doc.toc}>
+  <nav class="breadcrumb">{doc.relPath.replaceAll('/', ' / ')}</nav>
+  <article class="content-body" set:html={doc.html} />
+</Layout>

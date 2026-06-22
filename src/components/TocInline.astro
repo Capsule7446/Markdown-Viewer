@@ -1,0 +1,39 @@
+---
+import type { TocEntry } from '../lib/vault';
+
+// Collapsed form of the right-hand TOC, shown at the top of the content column
+// on medium widths (see app.css media query). A toggle shows the current
+// section; opening it reveals every entry — each with the same copy button as
+// the full TOC.
+interface Props {
+  toc: TocEntry[];
+}
+const { toc } = Astro.props;
+---
+<div class="toc-inline">
+  <button
+    class="toc-inline-toggle"
+    type="button"
+    aria-expanded="false"
+    aria-controls="toc-inline-panel"
+  >
+    <span class="toc-inline-label">
+      本頁內容
+      <svg class="toc-inline-chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+    </span>
+    <span class="toc-inline-current"></span>
+  </button>
+  <div class="toc-inline-panel" id="toc-inline-panel" hidden>
+    <ul>
+      {toc.map((h) => (
+        <li class={`lvl-${h.level}`}>
+          <a href={`#${h.id}`} data-id={h.id}>{h.text}</a>
+          <button class="toc-copy" type="button" data-anchor={h.id} title="複製此段落連結" aria-label="複製此段落連結">
+            <svg class="ic-copy" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <svg class="ic-ok" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>

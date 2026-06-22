@@ -1,0 +1,40 @@
+---
+import type { TreeNode } from '../lib/vault';
+// Self-import for recursion, aliased to avoid clashing with the component's
+// own implicit name.
+import Self from './TreeItem.astro';
+
+interface Props {
+  node: TreeNode;
+  current?: string;
+  basePath?: string;
+}
+const { node, current, basePath = '' } = Astro.props;
+const nodePath = basePath ? `${basePath}/${node.name}` : node.name;
+const isFolder = node.children.length > 0 && !node.slug;
+const isActive = node.slug && node.slug === current;
+// A folder is on the path to the current doc when its path prefixes the slug;
+// only those auto-expand, so sibling folders stay collapsed.
+const isAncestor =
+  isFolder && !!current && (current === nodePath || current.startsWith(`${nodePath}/`));
+// Searchable text covers the title and the full path of every descendant,
+// so filtering a parent keeps it visible when a child matches.
+const searchText = collect(node).join(' ').toLowerCase();
+
+function collect(n: TreeNode): string[] {
+  const self = [n.title ?? n.name, n.slug ?? ''];
+  return self.concat(...n.children.map(collect));
+}
+---
+<li class="tree-item" data-search={searchText}>
+  {isFolder ? (
+    <details open={isAncestor} data-path={nodePath} data-ancestor={isAncestor ? 'true' : undefined}>
+      <summary>{node.name}</summary>
+      <ul>
+        {node.children.map((child) => <Self node={child} current={current} basePath={nodePath} />)}
+      </ul>
+    </details>
+  ) : (
+    <a href={`/${node.slug}/`} class={isActive ? 'active' : ''}>{node.title}</a>
+  )}
+</li>
