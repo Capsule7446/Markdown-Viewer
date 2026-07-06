@@ -1,0 +1,14 @@
+[config]
+model = "gpt-5.5"
+fallback_models = ["gpt-5.4"]
+custom_model_max_tokens = 128000
+response_language = "zh-CN"
+
+[pr_reviewer]
+extra_instructions = "请用中文进行 PR Review。此 repo 是 Astro 静态 Markdown 浏览器，重点检查 vault 路径解析、构建时 Node 代码与浏览器脚本边界、pre-paint inline 脚本、CJK 搜索分词一致性、Markdown/Mermaid 渲染安全性、CSS 变量主题约束、无远端拉取/不写回 vault 的产品约束，以及测试或构建覆盖。"
+
+[pr_description]
+extra_instructions = "请用中文总结 PR 变更。"
+
+[pr_code_suggestions]
+extra_instructions = "请用中文给出代码改进建议。"
