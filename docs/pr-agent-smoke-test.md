@@ -1,0 +1,3 @@
+# PR Agent smoke test
+
+Temporary change used to verify the AI PR review workflow.
